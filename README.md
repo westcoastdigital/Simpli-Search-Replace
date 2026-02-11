@@ -201,7 +201,10 @@ These columns cannot be modified under any circumstances:
 
 ## Changelog
 
-### Version 1.1.0 (Enhanced)
+### Version 1.0.1
+- **Translation Ready**: All strings in the plugin, including PHP and JavaScript, are now fully translatable using the simpli text domain. This allows for localisation of admin labels, notices, buttons, alerts, and confirmation prompts.
+
+### Version 1.0.0 (Enhanced)
 - ✨ NEW: Native select element for table selection (supports Ctrl+A)
 - ✨ NEW: Word highlighting in preview (red for removed, green for added)
 - ✨ NEW: Three helper buttons for table selection
