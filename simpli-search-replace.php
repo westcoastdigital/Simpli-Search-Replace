@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name:  Simpli Search Replace
-Plugin URI:   https://gist.github.com/westcoastdigital
+Plugin URI:   https://github.com/westcoastdigital/Simpli-Search-Replace
 Description:  Serialized-safe database search & replace with preview functionality.
-Version:      1.0.1
+Version:      1.0.2
 Author:       Jon Mather
 Author URI:   https://jonmather.au
 License:      GPL v2 or later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'SSR_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SSR_URL', plugin_dir_url( __FILE__ ) );
-define( 'SSR_VERSION', '1.0.1' );
+define( 'SSR_VERSION', '1.0.2' );
 
 require_once SSR_PATH . 'includes/class-ssr-serializer.php';
 require_once SSR_PATH . 'includes/class-ssr-processor.php';
