@@ -5,7 +5,6 @@ if (! defined('ABSPATH')) {
 
 class SSR_Admin
 {
-
     public function __construct()
     {
         add_action('admin_menu', [$this, 'register_menu']);
@@ -18,8 +17,8 @@ class SSR_Admin
     public function register_menu()
     {
         add_management_page(
-            'Simpli Search Replace',
-            'Simpli Search Replace',
+            __('Simpli Search Replace', 'simpli'),
+            __('Simpli Search Replace', 'simpli'),
             'manage_options',
             'simpli-search-replace',
             [$this, 'render_page']
@@ -40,10 +39,38 @@ class SSR_Admin
             true
         );
 
-        wp_localize_script('ssr-admin', 'SSR_Ajax', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('ssr_nonce'),
-        ]);
+        // Translatable JS strings
+        $js_strings = [
+            'ajax_url'          => admin_url('admin-ajax.php'),
+            'nonce'             => wp_create_nonce('ssr_nonce'),
+            'select_table_error' => __('Please select at least one table.', 'simpli'),
+            'enter_search_error' => __('Please enter a search term.', 'simpli'),
+            'processing'        => __('Processing...', 'simpli'),
+            'no_matches'        => __('No matches found.', 'simpli'),
+            'preview_notice'    => __('This is a preview only. No changes have been made to the database.', 'simpli'),
+            'replacement_done'  => __('Replacement completed successfully!', 'simpli'),
+            'run_confirm'       => __('Are you sure you want to run this replacement?', 'simpli'),
+            'permanent_modify'  => __('⚠️ This will PERMANENTLY modify your database!', 'simpli'),
+            'cannot_undo'       => __('⚠️ This action CANNOT be undone!', 'simpli'),
+            'critical_warning'  => __('⚠️⚠️⚠️ WARNING: You have selected CRITICAL SYSTEM TABLES!', 'simpli'),
+            'critical_info'     => __('Modifying these tables can break your entire site!', 'simpli'),
+            'backed_up'         => __('Have you backed up your database?', 'simpli'),
+            'type_yes'          => __('Type YES to confirm:', 'simpli'),
+            'cancelled'         => __('Replacement cancelled. You must type YES to proceed.', 'simpli'),
+            'preview_required'  => __('← Preview required (form was changed)', 'simpli'),
+            'before_label'      => __('Before:', 'simpli'),
+            'after_label'       => __('After:', 'simpli'),
+            'table_label'       => __('Table:', 'simpli'),
+            'column_label'      => __('Column:', 'simpli'),
+            'id_label'          => __('ID:', 'simpli'),
+            'results_title'   => __('Results', 'simpli'),
+            'changes_found'   => __('changes found', 'simpli'),
+            'changes_done'    => __('changes done', 'simpli'),
+            'error_occurred'  => __('An error occurred. Please try again.', 'simpli'),
+            'tables_selected' => __('Tables selected:', 'simpli'),
+        ];
+
+        wp_localize_script('ssr-admin', 'SSR_Ajax', $js_strings);
 
         wp_enqueue_style(
             'ssr-admin',
@@ -52,6 +79,7 @@ class SSR_Admin
             SSR_VERSION
         );
     }
+
 
     public function render_page()
     {
@@ -62,23 +90,22 @@ class SSR_Admin
         global $wpdb;
         $tables = $wpdb->get_col('SHOW TABLES');
 
-        // Identify critical WordPress tables
         $critical_tables = [
             $wpdb->users,
             $wpdb->usermeta,
         ];
 ?>
         <div class="wrap">
-            <h1>Simpli Search Replace</h1>
+            <h1><?php echo esc_html__('Simpli Search Replace', 'simpli'); ?></h1>
 
             <div class="notice notice-warning ssr-notice">
-                <p><strong>⚠️ CRITICAL WARNING:</strong></p>
+                <p><strong>⚠️ <?php echo __('CRITICAL WARNING:', 'simpli'); ?></strong></p>
                 <ul>
-                    <li><strong>ALWAYS backup your database before running any replacement!</strong></li>
-                    <li>Test with Preview first - never run replacements without previewing</li>
-                    <li>Be especially careful with user tables and serialised data</li>
-                    <li>Replacing URLs or paths can break your site if done incorrectly</li>
-                    <li>This tool cannot be undone - only a database backup can restore your data</li>
+                    <li><strong><?php echo __('ALWAYS backup your database before running any replacement!', 'simpli'); ?></strong></li>
+                    <li><?php echo __('Test with Preview first - never run replacements without previewing', 'simpli'); ?></li>
+                    <li><?php echo __('Be especially careful with user tables and serialised data', 'simpli'); ?></li>
+                    <li><?php echo __('Replacing URLs or paths can break your site if done incorrectly', 'simpli'); ?></li>
+                    <li><?php echo __('This tool cannot be undone - only a database backup can restore your data', 'simpli'); ?></li>
                 </ul>
             </div>
 
@@ -87,52 +114,37 @@ class SSR_Admin
 
                 <div class="search-wrapper">
                     <div class="left">
-                        <h4>Search For</h4>
+                        <h4><?php echo esc_html__('Search For', 'simpli'); ?></h4>
                         <input type="text" name="search" id="ssr-search" class="regular-text" required>
-                        <p class="description">The text/URL you want to find and replace</p>
+                        <p class="description"><?php echo esc_html__('The text/URL you want to find and replace', 'simpli'); ?></p>
                     </div>
                     <div class="right">
-                        <h4>Replace With</h4>
+                        <h4><?php echo esc_html__('Replace With', 'simpli'); ?></h4>
                         <input type="text" name="replace" id="ssr-replace" class="regular-text">
-                        <p class="description">The new text/URL (leave empty to delete the search text)</p>
+                        <p class="description"><?php echo esc_html__('The new text/URL (leave empty to delete the search text)', 'simpli'); ?></p>
                     </div>
                 </div>
 
-                <!-- <table class="form-table">
-                    <tr>
-                        <th>Search For</th>
-                        <td>
-                            <input type="text" name="search" id="ssr-search" class="regular-text" required>
-                            <p class="description">The text/URL you want to find and replace</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Replace With</th>
-                        <td>
-                            <input type="text" name="replace" id="ssr-replace" class="regular-text">
-                            <p class="description">The new text/URL (leave empty to delete the search text)</p>
-                        </td>
-                    </tr>
-                </table> -->
-
                 <div class="table-wrapper">
-                    <h2>Select Tables</h2>
+                    <h2><?php echo esc_html__('Select Tables', 'simpli'); ?></h2>
                     <p class="description">
-                        Use Ctrl+Click to select multiple tables, or Shift+Click to select a range.
-                        Tables marked with ⚠️ are critical system tables.
+                        <?php echo esc_html__('Use Ctrl+Click to select multiple tables, or Shift+Click to select a range.', 'simpli'); ?>
+                        <?php echo esc_html__('Tables marked with ⚠️ are critical system tables.', 'simpli'); ?>
                     </p>
 
                     <p>
-                        <button type="button" class="button" id="ssr-select-all">Select All Tables</button>
-                        <button type="button" class="button" id="ssr-deselect-all">Deselect All</button>
-                        <button type="button" class="button" id="ssr-select-safe">Select Safe Tables Only</button>
+                        <button type="button" class="button" id="ssr-select-all"><?php echo esc_html__('Select All Tables', 'simpli'); ?></button>
+                        <button type="button" class="button" id="ssr-deselect-all"><?php echo esc_html__('Deselect All', 'simpli'); ?></button>
+                        <button type="button" class="button" id="ssr-select-safe"><?php echo esc_html__('Select Safe Tables Only', 'simpli'); ?></button>
                     </p>
 
                     <select name="tables[]" id="ssr-table-selector" class="ssr-table-selector" multiple size="15" required>
                         <?php
                         foreach ($tables as $table) :
                             $is_critical = in_array($table, $critical_tables);
-                            $label = $is_critical ? $table . ' ⚠️ (Critical)' : $table;
+                            $label = $is_critical
+                                ? sprintf('%s ⚠️ (%s)', $table, __('Critical', 'simpli'))
+                                : $table;
                         ?>
                             <option value="<?php echo esc_attr($table); ?>" data-critical="<?php echo $is_critical ? '1' : '0'; ?>">
                                 <?php echo esc_html($label); ?>
@@ -142,35 +154,35 @@ class SSR_Admin
                 </div>
 
                 <div class="table-wrapper">
-                    <h2>Options</h2>
+                    <h2><?php echo esc_html__('Options', 'simpli'); ?></h2>
                     <p>
                         <label>
                             <input type="checkbox" name="case_sensitive" checked>
-                            <strong>Case Sensitive</strong> - Match exact capitalization (recommended for URLs)
+                            <strong><?php echo esc_html__('Case Sensitive', 'simpli'); ?></strong> - <?php echo esc_html__('Match exact capitalization (recommended for URLs)', 'simpli'); ?>
                         </label>
                         <br>
                         <label>
                             <input type="checkbox" name="replace_guids">
-                            <strong>Replace GUIDs</strong> - ⚠️ Only enable if you know what you're doing! GUIDs should normally not be changed.
+                            <strong><?php echo esc_html__('Replace GUIDs', 'simpli'); ?></strong> - ⚠️ <?php echo esc_html__('Only enable if you know what you\'re doing! GUIDs should normally not be changed.', 'simpli'); ?>
                         </label>
                     </p>
                 </div>
 
                 <div class="table-wrapper">
-                    <h2>Run Operation</h2>
+                    <h2><?php echo esc_html__('Run Operation', 'simpli'); ?></h2>
                     <p class="description">
-                        <strong>Important:</strong> You MUST preview your changes before running the replacement!
+                        <strong><?php echo esc_html__('Important:', 'simpli'); ?></strong> <?php echo esc_html__('You MUST preview your changes before running the replacement!', 'simpli'); ?>
                     </p>
 
                     <p>
                         <button type="button" class="button button-large" id="ssr-preview">
-                            <span class="dashicons dashicons-search" style="margin-top: 3px;"></span> Preview Changes
+                            <span class="dashicons dashicons-search" style="margin-top: 3px;"></span> <?php echo esc_html__('Preview Changes', 'simpli'); ?>
                         </button>
                         <button type="button" class="button button-primary button-large" id="ssr-run" disabled>
-                            <span class="dashicons dashicons-database-import" style="margin-top: 3px;"></span> Run Replacement
+                            <span class="dashicons dashicons-database-import" style="margin-top: 3px;"></span> <?php echo esc_html__('Run Replacement', 'simpli'); ?>
                         </button>
                         <span id="ssr-preview-required" style="color: #d63638; margin-left: 10px;">
-                            ← Preview required before running replacement
+                            ← <?php echo esc_html__('Preview required before running replacement', 'simpli'); ?>
                         </span>
                     </p>
                 </div>
@@ -186,7 +198,7 @@ class SSR_Admin
         check_ajax_referer('ssr_nonce', 'nonce');
 
         if (! current_user_can('manage_options')) {
-            wp_send_json_error('Permission denied');
+            wp_send_json_error(__('Permission denied', 'simpli'));
         }
 
         $processor = new SSR_Processor();
@@ -200,7 +212,7 @@ class SSR_Admin
         check_ajax_referer('ssr_nonce', 'nonce');
 
         if (! current_user_can('manage_options')) {
-            wp_send_json_error('Permission denied');
+            wp_send_json_error(__('Permission denied', 'simpli'));
         }
 
         $processor = new SSR_Processor();

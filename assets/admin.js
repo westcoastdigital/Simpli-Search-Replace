@@ -34,7 +34,7 @@ jQuery(function ($) {
     $('#ssr-form input, #ssr-form select').on('change', function () {
         if (previewRun) {
             $('#ssr-run').prop('disabled', true);
-            $('#ssr-preview-required').show().text('← Preview required (form was changed)');
+            $('#ssr-preview-required').show().text(SSR_Ajax.preview_required);
             previewRun = false;
         }
     });
@@ -51,12 +51,10 @@ jQuery(function ($) {
         let regex = new RegExp(escapedSearch, flags);
 
         if (isBefore) {
-            // Highlight what's being removed (red)
             return escapedText.replace(regex, function(match) {
                 return '<mark class="ssr-highlight-remove">' + match + '</mark>';
             });
         } else {
-            // Highlight what's being added (green)
             if (replacement) {
                 let escapedReplacement = escapeRegex(replacement);
                 let replaceRegex = new RegExp(escapedReplacement, flags);
@@ -87,19 +85,19 @@ jQuery(function ($) {
 
     function runAction(action) {
 
-        let formData = $('#ssr-form').serialiseArray();
+        let formData = $('#ssr-form').serializeArray();
         formData.push({ name: 'action', value: action });
         formData.push({ name: 'nonce', value: SSR_Ajax.nonce });
 
         // Validate tables are selected
         if ($('#ssr-table-selector').val().length === 0) {
-            alert('Please select at least one table.');
+            alert(SSR_Ajax.select_table_error);
             return;
         }
 
         // Validate search field
         if (!$('#ssr-search').val()) {
-            alert('Please enter a search term.');
+            alert(SSR_Ajax.enter_search_error);
             return;
         }
 
@@ -108,7 +106,7 @@ jQuery(function ($) {
         currentReplace = $('#ssr-replace').val();
         caseSensitive = $('input[name="case_sensitive"]').is(':checked');
 
-        $('#ssr-results').html('<p><span class="dashicons dashicons-update-alt"></span> Processing...</p>');
+        $('#ssr-results').html('<p><span class="dashicons dashicons-update-alt"></span> ' + SSR_Ajax.processing + '</p>');
 
         $.post(SSR_Ajax.ajax_url, formData, function (response) {
 
@@ -118,32 +116,30 @@ jQuery(function ($) {
             }
 
             if (response.data.length === 0) {
-                $('#ssr-results').html('<div class="notice notice-info"><p>No matches found.</p></div>');
+                $('#ssr-results').html('<div class="notice notice-info"><p>' + SSR_Ajax.no_matches + '</p></div>');
                 return;
             }
 
-            let html = '<h2>Results (' + response.data.length + ' changes found)</h2>';
+            let html = '<h2>' + SSR_Ajax.results_title + ' (' + response.data.length + ' ' + SSR_Ajax.changes_found + ')</h2>';
 
             if (action === 'ssr_preview') {
-                html += '<div class="notice notice-info"><p>This is a preview only. No changes have been made to the database.</p></div>';
+                html += '<div class="notice notice-info"><p>' + SSR_Ajax.preview_notice + '</p></div>';
             } else {
-                html += '<div class="notice notice-success"><p><strong>✓ Replacement completed successfully!</strong> ' + response.data.length + ' changes were made.</p></div>';
+                html += '<div class="notice notice-success"><p><strong>✓ ' + SSR_Ajax.replacement_done + '</strong> ' + response.data.length + ' ' + SSR_Ajax.changes_done + '.</p></div>';
             }
 
             response.data.forEach(function (item) {
-                
-                // Apply highlighting to show exactly what's changing
                 let highlightedBefore = highlightChanges(item.original, currentSearch, currentReplace, true, caseSensitive);
                 let highlightedAfter = highlightChanges(item.new, currentSearch, currentReplace, false, caseSensitive);
-                
+
                 html += `
                 <div class="ssr-diff">
-                    <strong>Table:</strong> ${item.table} | 
-                    <strong>Column:</strong> ${item.column} | 
-                    <strong>ID:</strong> ${item.primary}
-                    <div class="ssr-label">Before:</div>
+                    <strong>${SSR_Ajax.table_label}</strong> ${item.table} | 
+                    <strong>${SSR_Ajax.column_label}</strong> ${item.column} | 
+                    <strong>${SSR_Ajax.id_label}</strong> ${item.primary}
+                    <div class="ssr-label">${SSR_Ajax.before_label}</div>
                     <div class="ssr-before">${highlightedBefore}</div>
-                    <div class="ssr-label">After:</div>
+                    <div class="ssr-label">${SSR_Ajax.after_label}</div>
                     <div class="ssr-after">${highlightedAfter}</div>
                 </div>
                 `;
@@ -151,12 +147,12 @@ jQuery(function ($) {
 
             $('#ssr-results').html(html);
 
-            // Enable run button after successful preview
             if (action === 'ssr_preview') {
                 enableRunButton();
             }
+
         }).fail(function () {
-            $('#ssr-results').html('<div class="notice notice-error"><p>An error occurred. Please try again.</p></div>');
+            $('#ssr-results').html('<div class="notice notice-error"><p>' + SSR_Ajax.error_occurred + '</p></div>');
         });
     }
 
@@ -175,23 +171,23 @@ jQuery(function ($) {
             }
         });
 
-        let confirmMsg = 'Are you sure you want to run this replacement?\n\n';
-        confirmMsg += '⚠️ This will PERMANENTLY modify your database!\n';
-        confirmMsg += '⚠️ This action CANNOT be undone!\n\n';
+        let confirmMsg = SSR_Ajax.run_confirm + '\n\n';
+        confirmMsg += SSR_Ajax.permanent_modify + '\n';
+        confirmMsg += SSR_Ajax.cannot_undo + '\n\n';
 
         if (hasCritical) {
-            confirmMsg += '⚠️⚠️⚠️ WARNING: You have selected CRITICAL SYSTEM TABLES!\n';
-            confirmMsg += 'Modifying these tables can break your entire site!\n\n';
+            confirmMsg += SSR_Ajax.critical_warning + '\n';
+            confirmMsg += SSR_Ajax.critical_info + '\n\n';
         }
 
-        confirmMsg += 'Tables selected: ' + selectedTables.length + '\n';
-        confirmMsg += 'Have you backed up your database?\n\n';
-        confirmMsg += 'Type YES to confirm:';
+        confirmMsg += SSR_Ajax.tables_selected + ' ' + selectedTables.length + '\n';
+        confirmMsg += SSR_Ajax.backed_up + '\n\n';
+        confirmMsg += SSR_Ajax.type_yes;
 
         let confirmation = prompt(confirmMsg);
 
         if (confirmation !== 'YES') {
-            alert('Replacement cancelled. You must type YES to proceed.');
+            alert(SSR_Ajax.cancelled);
             return;
         }
 

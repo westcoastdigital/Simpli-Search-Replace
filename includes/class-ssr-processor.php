@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SSR_Processor {
 
     /**
-     * Serialiser engine.
+     * Serializer engine.
      *
-     * @var SSR_Serialiser
+     * @var SSR_Serializer
      */
-    private $serialiser;
+    private $serializer;
 
     /**
      * Protected columns that should NEVER be modified.
@@ -56,7 +56,7 @@ class SSR_Processor {
      * Constructor.
      */
     public function __construct() {
-        $this->serialiser = new SSR_Serialiser();
+        $this->serializer = new SSR_Serializer();
     }
 
     /**
@@ -159,7 +159,7 @@ class SSR_Processor {
 
                     $original = $row[ $column_name ];
 
-                    $replaced = $this->serialiser->recursive_replace(
+                    $replaced = $this->serializer->recursive_replace(
                         $search,
                         $replace,
                         $original,

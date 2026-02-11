@@ -3,14 +3,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-class SSR_Serialiser {
+class SSR_Serializer {
 
     public function recursive_replace( $search, $replace, $data, $case_sensitive = false ) {
 
-        if ( is_serialised( $data ) ) {
-            $unserialised = maybe_unserialise( $data );
-            $unserialised = $this->recursive_replace( $search, $replace, $unserialised, $case_sensitive );
-            return maybe_serialise( $unserialised );
+        if ( is_serialized( $data ) ) {
+            $unserialized = maybe_unserialize( $data );
+            $unserialized = $this->recursive_replace( $search, $replace, $unserialized, $case_sensitive );
+            return maybe_serialize( $unserialized );
         }
 
         if ( is_array( $data ) ) {
